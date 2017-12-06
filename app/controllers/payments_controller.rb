@@ -7,8 +7,11 @@ class PaymentsController < ActionController::API
   class IncorrectLoanParamException < Exception 
   end
 
+  class IncorrectDateTypeException < Exception
+  end
+
   rescue_from IncorrectLoanParamException do |exception|
-    render json: 'incorrect_loan_id', status: :unprocessable_entity
+    render json: 'incorrect_loan_id', status: :bad_request
   end
 
   rescue_from ActiveRecord::RecordNotFound do |exception|
@@ -17,6 +20,10 @@ class PaymentsController < ActionController::API
 
   rescue_from IncorrectPaymentAmountException do |exception|
     render json: 'amount_too_high', status: :unprocessable_entity
+  end
+
+  rescue_from IncorrectDateTypeException do |exception|
+    render json: 'invalid_date', status: :bad_request
   end
 
   def index
@@ -33,7 +40,12 @@ class PaymentsController < ActionController::API
 
   def create
     loan = Loan.find(params[:loan_id])
-    payment_amount = BigDecimal(params[:amount])
+    begin
+      Date.parse(params['payment_date'])
+    rescue ArgumentError => e
+      raise IncorrectDateTypeException
+    end
+    payment_amount = params[:amount].to_f
     if payment_amount > loan.outstanding_balance
       raise IncorrectPaymentAmountException
     else

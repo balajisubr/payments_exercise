@@ -25,8 +25,8 @@ RSpec.describe PaymentsController, type: :controller do
       before do 
         get :show_loan_payments, params: {loan_id: 'a'}
       end
-      it 'raises 422' do
-        expect(response).to have_http_status(:unprocessable_entity)
+      it 'raises 400' do
+        expect(response).to have_http_status(:bad_request)
       end
     end
 
@@ -58,8 +58,8 @@ RSpec.describe PaymentsController, type: :controller do
     end
     context 'invalid loan id' do
       let(:payment_params) { base_payment_params.merge(loan_id: 'a', amount: '10' ) }
-      it 'raises 422' do
-        expect(response).to have_http_status(:unprocessable_entity)
+      it 'raises 400' do
+        expect(response).to have_http_status(:bad_request)
       end
 
       it 'raises correct error' do
@@ -75,6 +75,17 @@ RSpec.describe PaymentsController, type: :controller do
 
       it 'raises correct error' do
         expect(response.body).to eq('amount_too_high')
+      end
+    end
+
+    context 'invalid date' do
+      let(:payment_params) { base_payment_params.merge(loan_id: loan.id, amount: '10', payment_date:'xx' ) }
+      it 'raises 400' do
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it 'raises correct error' do
+        expect(response.body).to eq('invalid_date')
       end
     end
 
