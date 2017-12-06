@@ -1,7 +1,7 @@
 class Loan < ActiveRecord::Base
   has_many :payments
+
   def outstanding_balance
-    binding.pry
     [self.funded_amount - payments.pluck(:amount).reduce(0,:+), 0].max
   end
 

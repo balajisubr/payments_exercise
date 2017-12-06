@@ -1,10 +1,12 @@
 class PaymentsController < ActionController::API
-  before_action :validate_loan_id, only: [:create]
+  before_action :validate_loan_id, only: [:create, :show_loan_payments]
 
   class IncorrectPaymentAmountException < Exception
   end
+
   class IncorrectLoanParamException < Exception 
   end
+
   rescue_from IncorrectLoanParamException do |exception|
     render json: 'incorrect_loan_id', status: :unprocessable_entity
   end
@@ -21,10 +23,8 @@ class PaymentsController < ActionController::API
     render json: Payment.all
   end
 
-  def loan_payments
-    if params[:loan_id] =~ /(\d)+/
-      render json: Payment.where(loan_id: params[:loan_id])
-    end
+  def show_loan_payments
+    render json: Payment.where(loan_id: params[:loan_id])
   end
 
   def show
@@ -33,7 +33,7 @@ class PaymentsController < ActionController::API
 
   def create
     loan = Loan.find(params[:loan_id])
-    payment_amount = params[:amount].to_f
+    payment_amount = BigDecimal(params[:amount])
     if payment_amount > loan.outstanding_balance
       raise IncorrectPaymentAmountException
     else

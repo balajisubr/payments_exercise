@@ -4,7 +4,7 @@ describe Loan do
   let!(:loan) { FactoryGirl.create(:loan) }
   describe '#funded_amount' do
     it 'returns a decimal value' do
-      expect(loan.funded_amount).to eq(0.1e3)
+      expect(loan.funded_amount.class).to eq(BigDecimal)
     end
   end
 
